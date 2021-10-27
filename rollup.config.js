@@ -1,6 +1,8 @@
-import babel from '@rollup/plugin-babel'
 import commonjs from '@rollup/plugin-commonjs'
+import json from '@rollup/plugin-json'
 import resolve from '@rollup/plugin-node-resolve'
+import typescript from '@rollup/plugin-typescript'
+import external from 'rollup-plugin-peer-deps-external'
 
 import pkg from './package.json'
 
@@ -23,13 +25,11 @@ const config = {
     }
   ],
   plugins: [
-    babel({
-      extensions,
-      babelHelpers: 'bundled',
-      include: ['src/**/*']
-    }),
     commonjs({ extensions }),
-    resolve({ extensions })
+    external(),
+    json(),
+    resolve({ extensions, preferBuiltins: true }),
+    typescript()
   ]
 }
 
