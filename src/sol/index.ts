@@ -13,15 +13,15 @@ type SolanaNFTMetadata = { type: SolanaNFTType; url: string }
 const SOLANA_CLUSTER_ENDPOINT = 'https://api.mainnet-beta.solana.com'
 const METADATA_PROGRAM_ID_PUBLIC_KEY = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s')
 
-type SolanaClientProps = {
-  endpoint?: string
+export type SolanaClientProps = {
+  rpcEndpoint?: string
 }
 
 export class SolanaClient {
   readonly endpoint: string = SOLANA_CLUSTER_ENDPOINT
   private connection: Nullable<Connection> = null
   constructor(props?: SolanaClientProps) {
-    this.endpoint = props?.endpoint ?? this.endpoint
+    this.endpoint = props?.rpcEndpoint ?? this.endpoint
     try {
       this.connection = new Connection(this.endpoint!, 'confirmed')
     } catch (e) {

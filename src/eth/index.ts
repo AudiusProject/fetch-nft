@@ -50,17 +50,19 @@ const parseAssetResults = (results: AssetResult[], wallets: string[]) => {
     .flat()
 }
 
-type OpenSeaClientProps = {
+export type OpenSeaClientProps = {
+  apiEndpoint?: string
   apiKey?: string
   assetLimit?: number
 }
 
 export class OpenSeaClient {
-  readonly url = OPENSEA_API_URL
+  readonly url: string = OPENSEA_API_URL
   readonly apiKey: string = ''
   readonly assetLimit: number = 50
 
   constructor(props?: OpenSeaClientProps) {
+    this.url = props?.apiEndpoint ?? this.url
     this.apiKey = props?.apiKey ?? this.apiKey
     this.assetLimit = props?.assetLimit ?? this.assetLimit
   }
