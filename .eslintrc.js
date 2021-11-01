@@ -91,7 +91,7 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['src/**/*.d.ts', 'src/**/*.stories.tsx', 'rollup.config.js'],
+      files: ['src/**/*.d.ts', 'rollup.config.ts'],
       rules: {
         'import/no-default-export': 'off'
       }

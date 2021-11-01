@@ -29,7 +29,7 @@ const config = {
     external(),
     json(),
     resolve({ extensions, preferBuiltins: true }),
-    typescript()
+    typescript({ tsconfig: './tsconfig.json' })
   ]
 }
 
