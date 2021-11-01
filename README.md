@@ -12,15 +12,49 @@ npm install @audius/fetch-nft
 yarn add @audius/fetch-nft
 ```
 
+# Basic Usage
+```ts
+import { FetchNFTClient } from '@audius/fetch-nft'
+
+// Initialize fetch client
+const fetchClient = new FetchNFTClient()
+
+// Fetching all collectibles for the given wallets
+fetchClient.getCollectibles({
+  ethWallets: ['0x5A8443f456f490dceeAD0922B0Cc89AFd598cec9'],
+  solWallets: ['GrWNH9qfwrvoCEoTm65hmnSh4z3CD96SfhtfQY6ZKUfY']
+}).then(res => console.log(res))
+```
+
+# Fetch Client
+FetchNFTClient is the primary interface for using the library. When initializing the client, you may optionally pass in configs for the Open Sea and Solana clients used internally.
+
+```ts
+type OpenSeaClientProps = {
+  apiEndpoint?: string
+  apiKey?: string
+  assetLimit?: number
+}
+
+type SolanaClientProps = {
+  rpcEndpoint?: string
+}
+
+type FetchNFTClientProps = {
+  openSeaConfig?: OpenSeaClientProps,
+  solanaConfig?: SolanaClientProps
+}
+```
+
 # Main Functions
 Getting Ethereum collectibles:
 ```ts
-FetchNFTClient::getEthereumCollectibles(wallets?: string[]) => Promise<CollectibleState>
+FetchNFTClient::getEthereumCollectibles(wallets: string[]) => Promise<CollectibleState>
 ```
 
 Getting Solana collectibles:
 ```ts
-FetchNFTClient::getSolanaCollectibles(wallets?: string[]) => Promise<CollectibleState>
+FetchNFTClient::getSolanaCollectibles(wallets: string[]) => Promise<CollectibleState>
 ```
 
 Getting all collectibles:
@@ -35,7 +69,7 @@ FetchNFTClient::getCollectibles({
 ```
 
 # Output Types
-## Collectible
+### Collectible
 ```ts
 type Collectible = {
   id: string
@@ -59,14 +93,14 @@ type Collectible = {
 }
 ```
 
-## CollectibleState
+### CollectibleState
 ```ts
 type CollectibleState = {
   [wallet: string]: Collectible[]
 }
 ```
 
-# Basic Usage
+# Usage with Configs
 ```ts
 import { FetchNFTClient } from '@audius/fetch-nft'
 
@@ -90,7 +124,4 @@ fetchClient.getEthereumCollectibles([...]).then(res => console.log(res))
 
 // Fetching Solana collectibles for the given wallets
 fetchClient.getSolanaCollectibles([...]).then(res => console.log(res))
-
-// Fetching all collectibles for the given wallets
-fetchClient.getCollectibles({ ethWallets: [...], solWallets: [...] }).then(res => console.log(res))
 ```
