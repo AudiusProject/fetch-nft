@@ -1,5 +1,20 @@
-# @audius/fetch-nft
-A utility to fetch and easily display Ethereum & Solana NFTs in a common format given any wallet
+<p align="center">
+  <p align="center">
+    <b>@audius/fetch-nft</b>
+  </p>
+  <p align="center">
+    🖼🎑🌠
+  </p>
+  <p align="center">
+    A utility to fetch and easily display Ethereum & Solana NFTs in a common format given any wallet.
+  </p>
+  <p align="center">
+    built with ❤️ from the team <a href="https://audius.org">@Audius</a>.
+  </p>
+</p>
+
+<br/>
+<br/>
 
 # Installation
 ### Using npm:
@@ -25,6 +40,8 @@ fetchClient.getCollectibles({
   solWallets: ['GrWNH9qfwrvoCEoTm65hmnSh4z3CD96SfhtfQY6ZKUfY']
 }).then(res => console.log(res))
 ```
+
+By default, fetch-nft uses the public Opensea API and the Solana mainnet RPC endpoint. To configure API keys and endpoints, see [Usage With Configs](#usage-with-configs).
 
 # Fetch Client
 FetchNFTClient is the primary interface for using the library. When initializing the client, you may optionally pass in configs for the Open Sea and Solana clients used internally.
