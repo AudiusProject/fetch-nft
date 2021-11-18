@@ -51,6 +51,7 @@ type OpenSeaClientProps = {
   apiEndpoint?: string
   apiKey?: string
   assetLimit?: number
+  eventLimit?: number
 }
 
 type SolanaClientProps = {
@@ -125,7 +126,8 @@ import { FetchNFTClient } from '@audius/fetch-nft'
 const openSeaConfig = {
     apiEndpoint: '...',
     apiKey: '...',
-    assetLimit: 50
+    assetLimit: 50,
+    eventLimit: 300
 }
 
 // Solana Config
