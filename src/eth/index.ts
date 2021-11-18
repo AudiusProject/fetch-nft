@@ -54,22 +54,25 @@ export type OpenSeaClientProps = {
   apiEndpoint?: string
   apiKey?: string
   assetLimit?: number
+  eventLimit?: number
 }
 
 export class OpenSeaClient {
   readonly url: string = OPENSEA_API_URL
   readonly apiKey: string = ''
   readonly assetLimit: number = 50
+  readonly eventLimit: number = 300
 
   constructor(props?: OpenSeaClientProps) {
     this.url = props?.apiEndpoint ?? this.url
     this.apiKey = props?.apiKey ?? this.apiKey
     this.assetLimit = props?.assetLimit ?? this.assetLimit
+    this.eventLimit = props?.eventLimit ?? this.eventLimit
   }
 
   private getTransferredCollectiblesForWallet = async (
     wallet: string,
-    limit = this.assetLimit
+    limit = this.eventLimit
   ): Promise<AssetEventData> => {
     return fetch(
       `${this.url}/events?account_address=${wallet}&limit=${limit}&event_type=transfer&only_opensea=false`
@@ -78,7 +81,7 @@ export class OpenSeaClient {
 
   private getTransferredCollectiblesForMultipleWallets = async (
     wallets: string[],
-    limit = this.assetLimit
+    limit = this.eventLimit
   ): Promise<OpenSeaEventExtended[]> => {
     return Promise.allSettled(
       wallets.map(wallet => this.getTransferredCollectiblesForWallet(wallet, limit))
@@ -87,7 +90,7 @@ export class OpenSeaClient {
 
   private getCreatedCollectiblesForWallet = async (
     wallet: string,
-    limit = this.assetLimit
+    limit = this.eventLimit
   ): Promise<AssetEventData> => {
     return fetch(
       `${this.url}/events?account_address=${wallet}&limit=${limit}&event_type=created&only_opensea=false`
@@ -96,7 +99,7 @@ export class OpenSeaClient {
 
   private getCreatedCollectiblesForMultipleWallets = async (
     wallets: string[],
-    limit = this.assetLimit
+    limit = this.eventLimit
   ): Promise<OpenSeaEventExtended[]> => {
     return Promise.allSettled(
       wallets.map(wallet => this.getCreatedCollectiblesForWallet(wallet, limit))
