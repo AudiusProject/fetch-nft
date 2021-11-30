@@ -6,6 +6,7 @@ import dts from 'rollup-plugin-dts'
 import external from 'rollup-plugin-peer-deps-external'
 
 import pkg from './package.json'
+import tsconfig from './tsconfig.json'
 
 const extensions = ['.js', '.ts']
 
@@ -39,7 +40,9 @@ const config = [
     output: [{ file: 'dist/index.d.ts', format: 'es' }],
     plugins: [
       dts({
-        compilerOptions: { baseUrl: './dist' }
+        compilerOptions: {
+          baseUrl: tsconfig.compilerOptions.baseUrl
+        }
       })
     ]
   }
