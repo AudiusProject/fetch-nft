@@ -17,14 +17,12 @@
 <br/>
 
 # Installation
-### Using npm:
-```bash
-npm install @audius/fetch-nft
-```
 
-### Using yarn:
 ```bash
-yarn add @audius/fetch-nft
+# install peer dependencies if not already in your project
+npm install @solana/spl-token @solana/web3.js
+
+npm install @audius/fetch-nft
 ```
 
 # Basic Usage
