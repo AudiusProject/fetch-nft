@@ -1,5 +1,5 @@
 import { OpenSeaAssetExtended, OpenSeaEvent, OpenSeaEventExtended } from 'eth/types'
-import { Chain, Collectible, CollectibleMediaType } from 'utils/types'
+import { Collectible, CollectibleMediaType } from 'utils/types'
 
 /**
  * extensions based on OpenSea metadata standards
@@ -131,12 +131,12 @@ export const assetToCollectible = async (
 
   try {
     if (isAssetGif(asset)) {
-      mediaType = CollectibleMediaType.GIF
+      mediaType = 'GIF'
       // frame url for the gif is computed later in the collectibles page
       frameUrl = null
       gifUrl = imageUrls.find(url => url?.endsWith('.gif'))!
     } else if (isAssetThreeDAndIncludesImage(asset)) {
-      mediaType = CollectibleMediaType.THREE_D
+      mediaType = 'THREE_D'
       threeDUrl = [animation_url, animation_original_url, ...imageUrls].find(
         url => url && SUPPORTED_3D_EXTENSIONS.some(ext => url.endsWith(ext))
       )!
@@ -155,7 +155,7 @@ export const assetToCollectible = async (
         frameUrl = null
       }
     } else if (isAssetVideo(asset)) {
-      mediaType = CollectibleMediaType.VIDEO
+      mediaType = 'VIDEO'
       frameUrl =
         imageUrls.find(
           url => url && NON_IMAGE_EXTENSIONS.every(ext => !url.endsWith(ext))
@@ -178,18 +178,18 @@ export const assetToCollectible = async (
         url => url && SUPPORTED_VIDEO_EXTENSIONS.some(ext => url.endsWith(ext))
       )!
     } else {
-      mediaType = CollectibleMediaType.IMAGE
+      mediaType = 'IMAGE'
       frameUrl = imageUrls.find(url => !!url)!
       const res = await fetch(frameUrl, { method: 'HEAD' })
       const isGif = res.headers.get('Content-Type')?.includes('gif')
       const isVideo = res.headers.get('Content-Type')?.includes('video')
       if (isGif) {
-        mediaType = CollectibleMediaType.GIF
+        mediaType = 'GIF'
         gifUrl = frameUrl
         // frame url for the gif is computed later in the collectibles page
         frameUrl = null
       } else if (isVideo) {
-        mediaType = CollectibleMediaType.VIDEO
+        mediaType = 'VIDEO'
         frameUrl = null
         videoUrl = imageUrls.find(url => !!url)!
       } else {
@@ -198,7 +198,7 @@ export const assetToCollectible = async (
     }
   } catch (e) {
     console.error('Error processing collectible', e)
-    mediaType = CollectibleMediaType.IMAGE
+    mediaType = 'IMAGE'
     frameUrl = imageUrls.find(url => !!url)!
     imageUrl = frameUrl
   }
@@ -220,7 +220,7 @@ export const assetToCollectible = async (
     externalLink: asset.external_link,
     permaLink: asset.permalink,
     assetContractAddress: asset.asset_contract?.address ?? null,
-    chain: Chain.ETH,
+    chain: 'eth',
     wallet: asset.wallet
   }
 }

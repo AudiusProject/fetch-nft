@@ -180,7 +180,7 @@ export class SolanaClient {
     const endIndex = suffixIndex + suffix.length + hashLength
     const url = text.substring(startIndex, endIndex)
     return {
-      type: SolanaNFTType.METAPLEX,
+      type: 'METAPLEX',
       url
     }
   }
@@ -203,7 +203,7 @@ export class SolanaClient {
     const endIndex = suffixIndex + suffix.length + hashLength
     const url = text.substring(startIndex, endIndex)
     return {
-      type: SolanaNFTType.STAR_ATLAS,
+      type: 'STAR_ATLAS',
       url
     }
   }
@@ -226,7 +226,7 @@ export class SolanaClient {
     const endIndex = extensionIndex + extension.length
     const url = text.substring(startIndex, endIndex)
     return {
-      type: SolanaNFTType.METAPLEX,
+      type: 'METAPLEX',
       url
     }
   }
@@ -252,7 +252,7 @@ export class SolanaClient {
 
     const url = text.substring(startIndex, endIndex)
     return {
-      type: SolanaNFTType.METAPLEX,
+      type: 'METAPLEX',
       url
     }
   }
