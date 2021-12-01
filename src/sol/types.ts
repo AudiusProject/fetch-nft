@@ -1,9 +1,6 @@
 import { Nullable } from 'utils/typeUtils'
 
-export enum SolanaNFTType {
-  METAPLEX = 'METAPLEX',
-  STAR_ATLAS = 'STAR_ATLAS'
-}
+export type SolanaNFTType = 'METAPLEX' | 'STAR_ATLAS'
 
 type MetaplexNFTCreator = {
   address: string

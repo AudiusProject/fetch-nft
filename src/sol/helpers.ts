@@ -6,7 +6,7 @@ import {
   StarAtlasNFT
 } from 'sol/types'
 import { Nullable } from 'utils/typeUtils'
-import { Chain, Collectible, CollectibleMediaType } from 'utils/types'
+import { Collectible, CollectibleMediaType } from 'utils/types'
 
 type SolanaNFTMedia = {
   collectibleMediaType: CollectibleMediaType
@@ -25,7 +25,7 @@ const nftGif = async (nft: MetaplexNFT): Promise<Nullable<SolanaNFTMedia>> => {
   if (gifFile) {
     const url = (gifFile as MetaplexNFTPropertiesFile).uri
     return {
-      collectibleMediaType: CollectibleMediaType.GIF,
+      collectibleMediaType: 'GIF',
       url,
       frameUrl: null
     }
@@ -82,7 +82,7 @@ const nftThreeDWithFrame = async (
         return null
       }
       return {
-        collectibleMediaType: CollectibleMediaType.THREE_D,
+        collectibleMediaType: 'THREE_D',
         url,
         frameUrl
       }
@@ -145,7 +145,7 @@ const nftVideo = async (
       return null
     }
     return {
-      collectibleMediaType: CollectibleMediaType.VIDEO,
+      collectibleMediaType: 'VIDEO',
       url,
       frameUrl: nft.image || null
     }
@@ -186,7 +186,7 @@ const nftImage = async (
       return null
     }
     return {
-      collectibleMediaType: CollectibleMediaType.IMAGE,
+      collectibleMediaType: 'IMAGE',
       url,
       frameUrl: url
     }
@@ -216,21 +216,21 @@ const nftComputedMedia = async (
   if (contentType?.includes('gif')) {
     // frame url for the gif is computed later in the collectibles page
     return {
-      collectibleMediaType: CollectibleMediaType.GIF,
+      collectibleMediaType: 'GIF',
       url,
       frameUrl: null
     }
   }
   if (contentType?.includes('video')) {
     return {
-      collectibleMediaType: CollectibleMediaType.VIDEO,
+      collectibleMediaType: 'VIDEO',
       url,
       frameUrl: null
     }
   }
   if (contentType?.includes('image')) {
     return {
-      collectibleMediaType: CollectibleMediaType.IMAGE,
+      collectibleMediaType: 'IMAGE',
       url,
       frameUrl: url
     }
@@ -254,7 +254,7 @@ const metaplexNFTToCollectible = async (
     description: nft.description,
     externalLink: nft.external_url,
     isOwned: true,
-    chain: Chain.SOL
+    chain: 'sol'
   } as Collectible
 
   if (
@@ -272,13 +272,13 @@ const metaplexNFTToCollectible = async (
     (await nftComputedMedia(nft))) as SolanaNFTMedia
   collectible.frameUrl = frameUrl
   collectible.mediaType = collectibleMediaType
-  if (collectibleMediaType === CollectibleMediaType.GIF) {
+  if (collectibleMediaType === 'GIF') {
     collectible.gifUrl = url
-  } else if (collectibleMediaType === CollectibleMediaType.THREE_D) {
+  } else if (collectibleMediaType === 'THREE_D') {
     collectible.threeDUrl = url
-  } else if (collectibleMediaType === CollectibleMediaType.VIDEO) {
+  } else if (collectibleMediaType === 'VIDEO') {
     collectible.videoUrl = url
-  } else if (collectibleMediaType === CollectibleMediaType.IMAGE) {
+  } else if (collectibleMediaType === 'IMAGE') {
     collectible.imageUrl = url
   }
 
@@ -298,7 +298,7 @@ const starAtlasNFTToCollectible = async (
     name: nft.name,
     description: nft.description,
     isOwned: true,
-    chain: Chain.SOL
+    chain: 'sol'
   } as Collectible
 
   // todo: check if there are gif or video nfts for star atlas
@@ -309,7 +309,7 @@ const starAtlasNFTToCollectible = async (
     .filter(Boolean)
     .some(item => ['glb', 'gltf'].every(extension => !item.endsWith(extension)))
   if (is3DObj && hasImageFrame) {
-    collectible.mediaType = CollectibleMediaType.THREE_D
+    collectible.mediaType = 'THREE_D'
     collectible.threeDUrl = ['glb', 'gltf'].some(extension =>
       nft.image.endsWith(extension)
     )
@@ -321,7 +321,7 @@ const starAtlasNFTToCollectible = async (
       ? nft.image
       : nft.media?.thumbnailUrl
   } else {
-    collectible.mediaType = CollectibleMediaType.IMAGE
+    collectible.mediaType = 'IMAGE'
     collectible.imageUrl = nft.image
     collectible.frameUrl = nft.media?.thumbnailUrl?.length
       ? nft.media.thumbnailUrl
@@ -338,9 +338,9 @@ export const solanaNFTToCollectible = async (
   type: SolanaNFTType
 ): Promise<Nullable<Collectible>> => {
   switch (type) {
-    case SolanaNFTType.METAPLEX:
+    case 'METAPLEX':
       return metaplexNFTToCollectible(nft as MetaplexNFT, address)
-    case SolanaNFTType.STAR_ATLAS:
+    case 'STAR_ATLAS':
       return starAtlasNFTToCollectible(nft as StarAtlasNFT)
     default:
       return null

@@ -1,16 +1,8 @@
 import { Nullable } from 'utils/typeUtils'
 
-export enum Chain {
-  ETH = 'eth',
-  SOL = 'sol'
-}
+export type Chain = 'eth' | 'sol'
 
-export enum CollectibleMediaType {
-  IMAGE = 'IMAGE',
-  VIDEO = 'VIDEO',
-  GIF = 'GIF',
-  THREE_D = 'THREE_D'
-}
+export type CollectibleMediaType = 'IMAGE' | 'VIDEO' | 'GIF' | 'THREE_D'
 
 export type Collectible = {
   id: string
