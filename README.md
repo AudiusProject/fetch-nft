@@ -142,3 +142,5 @@ fetchClient.getEthereumCollectibles([...]).then(res => console.log(res))
 // Fetching Solana collectibles for the given wallets
 fetchClient.getSolanaCollectibles([...]).then(res => console.log(res))
 ```
+
+For more examples, see the [/examples](/examples) directory
