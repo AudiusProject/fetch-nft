@@ -2,6 +2,8 @@ import { OpenSeaClient, OpenSeaClientProps } from 'eth'
 import { SolanaClient, SolanaClientProps } from 'sol'
 import { Collectible, CollectibleState } from 'utils/types'
 
+import 'cross-fetch/polyfill'
+
 type FetchNFTClientProps = {
   openSeaConfig?: OpenSeaClientProps,
   solanaConfig?: SolanaClientProps

@@ -1,0 +1,18 @@
+.App {
+  text-align: center;
+}
+
+.Header {
+  margin-top: 20px;
+  font-size: 20px; 
+  font-weight: 900;
+}
+
+.Name {
+  font-size: 14px;
+}
+
+.Image {
+  width: 100px;
+  height: 100px;
+}
