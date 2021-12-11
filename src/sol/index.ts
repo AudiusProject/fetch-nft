@@ -19,7 +19,7 @@ export type SolanaClientProps = {
 
 export class SolanaClient {
   readonly endpoint: string = SOLANA_CLUSTER_ENDPOINT
-  private connection: Nullable<Connection> = null
+  private readonly connection: Nullable<Connection> = null
   constructor(props?: SolanaClientProps) {
     this.endpoint = props?.rpcEndpoint ?? this.endpoint
     try {
@@ -157,7 +157,8 @@ export class SolanaClient {
       this._metaplex(text) ||
       this._starAtlas(text) ||
       this._jsonExtension(text) ||
-      this._ipfs(text)
+      this._ipfs(text) ||
+      this._metaplexMints(text)
     )
   }
 
@@ -254,6 +255,25 @@ export class SolanaClient {
     return {
       type: 'METAPLEX',
       url
+    }
+  }
+
+  private _metaplexMints = (text: string): Nullable<SolanaNFTMetadata> => {
+    // Look for 'https://<any-url>/api/metaplex-mints/<...hash...>' or 'https://<any-url>/api/metaplex-mints/<anything>/<...hash...>' and that will be the metadata location
+    const query = 'https://'
+    const startIndex = text.indexOf(query)
+    if (startIndex === -1) return null
+    // e.g. https://solarians.click/api/metaplex-mints/HUQsxb5QFNY9eGwHafRAXZVnBhhdQXR9GeSSrgLnmEGh
+    const defaultRegex = /https:\/\/(.*)\.(.*)\/api\/metaplex-mints\/[A-Za-z0-9_]{44}/gm
+    // e.g. https://bitboat.me/api/metaplex-mints/boat/4uAV88PuEAM56X4S2zcEom1omKULmdA4mj5kMqtz6xwb
+    const complexRegex = /https:\/\/(.*)\.(.*)\/api\/metaplex-mints\/(.*)\/[A-Za-z0-9_]{44}/gm
+    const defaultResult = (text.match(defaultRegex) || text.match(complexRegex) || []).join('')
+
+    if (defaultResult.length === 0) return null
+
+    return {
+      type: 'METAPLEX',
+      url: defaultResult
     }
   }
 }
