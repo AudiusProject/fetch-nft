@@ -63,11 +63,19 @@ export class OpenSeaClient {
   readonly assetLimit: number = 50
   readonly eventLimit: number = 300
 
+  private requestOptions = {}
+
   constructor(props?: OpenSeaClientProps) {
     this.url = props?.apiEndpoint ?? this.url
     this.apiKey = props?.apiKey ?? this.apiKey
     this.assetLimit = props?.assetLimit ?? this.assetLimit
     this.eventLimit = props?.eventLimit ?? this.eventLimit
+
+    if (this.apiKey) {
+      this.requestOptions = {
+        headers: new Headers({ 'X-API-KEY': this.apiKey })
+      }
+    }
   }
 
   private getTransferredCollectiblesForWallet = async (
@@ -75,7 +83,8 @@ export class OpenSeaClient {
     limit = this.eventLimit
   ): Promise<AssetEventData> => {
     return fetch(
-      `${this.url}/events?account_address=${wallet}&limit=${limit}&event_type=transfer&only_opensea=false`
+      `${this.url}/events?account_address=${wallet}&limit=${limit}&event_type=transfer&only_opensea=false`,
+      this.requestOptions
     ).then(r => r.json())
   }
 
@@ -93,8 +102,9 @@ export class OpenSeaClient {
     limit = this.eventLimit
   ): Promise<AssetEventData> => {
     return fetch(
-      `${this.url}/events?account_address=${wallet}&limit=${limit}&event_type=created&only_opensea=false`
-    ).then(r => r.json())
+      `${this.url}/events?account_address=${wallet}&limit=${limit}&event_type=created&only_opensea=false`,
+      this.requestOptions
+    ).then((r) => r.json())
   }
 
   private getCreatedCollectiblesForMultipleWallets = async (
@@ -111,8 +121,9 @@ export class OpenSeaClient {
     limit = this.assetLimit
   ): Promise<AssetData> => {
     return fetch(
-      `${this.url}/assets?owner=${wallet}&limit=${limit}`
-    ).then(r => r.json())
+      `${this.url}/assets?owner=${wallet}&limit=${limit}`,
+      this.requestOptions
+    ).then((r) => r.json())
   }
 
   private getCollectiblesForMultipleWallets = async (
