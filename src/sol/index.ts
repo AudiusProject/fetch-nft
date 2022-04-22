@@ -11,7 +11,9 @@ import { Collectible, CollectibleState } from 'utils/types'
 type SolanaNFTMetadata = { type: SolanaNFTType; url: string }
 
 const SOLANA_CLUSTER_ENDPOINT = 'https://api.mainnet-beta.solana.com'
-const METADATA_PROGRAM_ID_PUBLIC_KEY = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s')
+const METADATA_PROGRAM_ID_PUBLIC_KEY = new PublicKey(
+  'metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s'
+)
 
 export type SolanaClientProps = {
   rpcEndpoint?: string
@@ -39,13 +41,15 @@ export class SolanaClient {
    * - get the metadata urls from the account infos and fetch the metadatas
    * - transform the nft metadatas to Audius-domain collectibles
    */
-  public getAllCollectibles = async (wallets: string[]): Promise<CollectibleState> => {
+  public getAllCollectibles = async (
+    wallets: string[]
+  ): Promise<CollectibleState> => {
     try {
       if (this.connection === null) throw new Error('No connection')
       const connection = this.connection
 
       const tokenAccountsByOwnerAddress = await Promise.all(
-        wallets.map(async address =>
+        wallets.map(async (address) =>
           connection.getParsedTokenAccountsByOwner(new PublicKey(address), {
             programId: TOKEN_PROGRAM_ID
           })
@@ -53,11 +57,11 @@ export class SolanaClient {
       )
 
       const potentialNFTsByOwnerAddress = tokenAccountsByOwnerAddress
-        .map(ta => ta.value)
+        .map((ta) => ta.value)
         // value is an array of parsed token info
         .map((value) => {
           const mintAddresses = value
-            .map(v => ({
+            .map((v) => ({
               mint: v.account.data.parsed.info.mint,
               tokenAmount: v.account.data.parsed.info.tokenAmount
             }))
@@ -77,7 +81,7 @@ export class SolanaClient {
         potentialNFTsByOwnerAddress.map(async ({ mintAddresses }) => {
           const programAddresses = await Promise.all(
             mintAddresses.map(
-              async mintAddress =>
+              async (mintAddress) =>
                 (
                   await PublicKey.findProgramAddress(
                     [
@@ -97,13 +101,13 @@ export class SolanaClient {
           const nonNullInfos = accountInfos?.filter(Boolean) ?? []
 
           const metadataUrls = nonNullInfos
-            .map(x => this._utf8ArrayToNFTType(x!.data))
+            .map((x) => this._utf8ArrayToNFTType(x!.data))
             .filter(Boolean) as SolanaNFTMetadata[]
 
           const results = await Promise.all(
-            metadataUrls.map(async item =>
+            metadataUrls.map(async (item) =>
               fetch(item!.url)
-                .then(res => res.json())
+                .then((res) => res.json())
                 .catch(() => null)
             )
           )
@@ -113,7 +117,7 @@ export class SolanaClient {
             type: metadataUrls[i].type
           }))
 
-          return metadatas.filter(r => !!r.metadata)
+          return metadatas.filter((r) => !!r.metadata)
         })
       )
 
@@ -121,7 +125,8 @@ export class SolanaClient {
         nfts.map(async (nftsForAddress, i) => {
           const collectibles = await Promise.all(
             nftsForAddress.map(
-              async nft => await solanaNFTToCollectible(nft.metadata, wallets[i], nft.type)
+              async (nft) =>
+                await solanaNFTToCollectible(nft.metadata, wallets[i], nft.type)
             )
           )
           return collectibles.filter(Boolean) as Collectible[]
@@ -148,7 +153,9 @@ export class SolanaClient {
    * a given nft collection can have nfts living in different domains e.g. solamander on cloudfront or arweave or etc., also
    * nfts may live in ipfs or other places
    */
-  private _utf8ArrayToNFTType = (array: Uint8Array): Nullable<SolanaNFTMetadata> => {
+  private _utf8ArrayToNFTType = (
+    array: Uint8Array
+  ): Nullable<SolanaNFTMetadata> => {
     const text = new TextDecoder().decode(array)
 
     // for the sake of simplicty/readability/understandability, we check the decoded url
@@ -248,7 +255,7 @@ export class SolanaClient {
     if (suffixIndex === -1) return null
 
     let endIndex = suffixIndex + suffix.length
-    while (/[a-zA-Z0-9]/.test(text.charAt(endIndex++))) { }
+    while (/[a-zA-Z0-9]/.test(text.charAt(endIndex++))) {}
 
     const url = text.substring(startIndex, endIndex)
     return {
