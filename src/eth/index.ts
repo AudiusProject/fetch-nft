@@ -89,10 +89,17 @@ export class OpenSeaClient {
     wallet: string,
     limit = this.eventLimit
   ): Promise<AssetEventData> => {
-    return fetch(
-      `${this.url}/events?account_address=${wallet}&limit=${limit}&event_type=transfer&only_opensea=false`,
-      this.requestOptions
-    ).then((r) => r.json())
+    const url = `${this.url}/events?account_address=${wallet}&limit=${limit}&event_type=transfer&only_opensea=false`
+    try {
+      const res = await fetch(
+        url,
+        this.requestOptions
+      ).then((r) => r.json())
+      return res
+    } catch (e) {
+      console.error(e, url)
+      throw e
+    }
   }
 
   private getTransferredCollectiblesForMultipleWallets = async (
@@ -110,10 +117,17 @@ export class OpenSeaClient {
     wallet: string,
     limit = this.eventLimit
   ): Promise<AssetEventData> => {
-    return fetch(
-      `${this.url}/events?account_address=${wallet}&limit=${limit}&event_type=created&only_opensea=false`,
-      this.requestOptions
-    ).then((r) => r.json())
+    const url = `${this.url}/events?account_address=${wallet}&limit=${limit}&event_type=created&only_opensea=false`
+    try {
+      const res = await fetch(
+        url,
+        this.requestOptions
+      ).then((r) => r.json())
+      return res
+    } catch (e) {
+      console.error(e, url)
+      throw e
+    }
   }
 
   private getCreatedCollectiblesForMultipleWallets = async (
@@ -131,10 +145,17 @@ export class OpenSeaClient {
     wallet: string,
     limit = this.assetLimit
   ): Promise<AssetData> => {
-    return fetch(
-      `${this.url}/assets?owner=${wallet}&limit=${limit}`,
-      this.requestOptions
-    ).then((r) => r.json())
+    const url = `${this.url}/assets?owner=${wallet}&limit=${limit}`
+    try {
+      const res = await fetch(
+        url,
+        this.requestOptions
+      ).then((r) => r.json())
+      return res
+    } catch (e) {
+      console.error(e, url)
+      throw e
+    }
   }
 
   private getCollectiblesForMultipleWallets = async (

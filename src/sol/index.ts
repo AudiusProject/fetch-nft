@@ -117,7 +117,7 @@ export class SolanaClient {
             type: metadataUrls[i].type
           }))
 
-          return metadatas.filter((r) => !!r.metadata)
+          return metadatas.filter((r) => !!r.metadata && Object.keys(r.metadata).length > 0)
         })
       )
 

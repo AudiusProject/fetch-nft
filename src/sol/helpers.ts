@@ -169,10 +169,10 @@ const nftImage = async (
     (file) => typeof file === 'object' && file.type.includes('image')
   ) as MetaplexNFTPropertiesFile
   const isImage =
-    nft.properties?.category === 'image' || nft.image.length || imageFile
+    nft.properties?.category === 'image' || nft.image?.length || imageFile
   if (isImage) {
     let url
-    if (nft.image.length) {
+    if (nft.image?.length) {
       url = nft.image
     } else if (imageFile) {
       url = imageFile.uri
