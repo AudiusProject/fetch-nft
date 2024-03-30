@@ -1,32 +1,62 @@
-import { OpenSeaClient, OpenSeaClientProps } from 'eth'
-import { SolanaClient, SolanaClientProps } from 'sol'
+import { Metadata } from '@metaplex-foundation/mpl-token-metadata'
+
+import { OpenSeaClient, OpenSeaClientCtorProps } from 'eth/opensea'
+import { EthereumCollectiblesProvider } from 'eth/provider'
+import { OpenSeaCollection } from 'eth/types'
+import { HeliusClient, HeliusClientCtorProps } from 'sol/helius'
+import { SolanaCollectiblesProvider } from 'sol/provider'
+import { Nullable } from 'utils/typeUtils'
 import { Collectible, CollectibleState } from 'utils/types'
 
 import 'cross-fetch/polyfill'
 
 type FetchNFTClientProps = {
-  openSeaConfig?: OpenSeaClientProps
-  solanaConfig?: SolanaClientProps
+  openSeaConfig?: OpenSeaClientCtorProps
+  heliusConfig? : HeliusClientCtorProps
+  solanaConfig?: {
+    rpcEndpoint?: string
+    metadataProgramId?: string
+  }
 }
 
 export class FetchNFTClient {
-  private ethClient: OpenSeaClient
-  private solClient: SolanaClient
+  private readonly ethCollectiblesProvider: EthereumCollectiblesProvider
+  private readonly solCollectiblesProvider: SolanaCollectiblesProvider
 
   constructor(props?: FetchNFTClientProps) {
-    this.ethClient = new OpenSeaClient(props?.openSeaConfig ?? {})
-    this.solClient = new SolanaClient(props?.solanaConfig ?? {})
+    const openseaClient = new OpenSeaClient(props?.openSeaConfig)
+    this.ethCollectiblesProvider = new EthereumCollectiblesProvider(openseaClient)
+    const heliusClient = new HeliusClient(props?.heliusConfig)
+    this.solCollectiblesProvider = new SolanaCollectiblesProvider({
+      heliusClient,
+      rpcEndpoint: props?.solanaConfig?.rpcEndpoint,
+      metadataProgramId: props?.solanaConfig?.metadataProgramId
+    })
+  }
+
+  public getEthereumCollectionMetadatas = async (addresses: []): Promise<{ [address: string]: OpenSeaCollection }> => {
+    return this.ethCollectiblesProvider.getCollectionMetadatas(addresses)
   }
 
   public getEthereumCollectibles = async (
     wallets: string[]
-  ): Promise<CollectibleState> =>
-    wallets.length ? await this.ethClient.getAllCollectibles(wallets) : {}
+  ): Promise<CollectibleState> => {
+    return wallets.length
+      ? this.ethCollectiblesProvider.getCollectibles(wallets)
+      : {}
+  }
+
+  public getSolanaCollectionMetadata = async (mintAddress: string): Promise<Nullable<{ metadata: Metadata, imageUrl: string }>> => {
+    return this.solCollectiblesProvider.getCollectionMetadata(mintAddress)
+  }
 
   public getSolanaCollectibles = async (
     wallets: string[]
-  ): Promise<CollectibleState> =>
-    wallets.length ? await this.solClient.getAllCollectibles(wallets) : {}
+  ): Promise<CollectibleState> => {
+    return wallets.length
+      ? this.solCollectiblesProvider.getCollectibles(wallets)
+      : {}
+  }
 
   public getCollectibles = async (args: {
     ethWallets?: string[]
@@ -42,7 +72,7 @@ export class FetchNFTClient {
       ])
       return { ethCollectibles, solCollectibles }
     } catch (e) {
-      console.error(e.message)
+      console.error(`FetchNFTClient | getCollectibles | error: ${e}`)
       return e
     }
   }

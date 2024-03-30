@@ -1,9 +1,25 @@
-import {
-  OpenSeaAssetExtended,
-  OpenSeaEvent,
-  OpenSeaEventExtended
-} from 'eth/types'
+import dayjs from 'dayjs'
+
+import { Nullable } from 'utils/typeUtils'
 import { Collectible, CollectibleMediaType } from 'utils/types'
+
+import { EthTokenStandard, OpenSeaEvent, OpenSeaEventExtended, OpenSeaNftExtended } from './types'
+
+const fetchWithTimeout = async (
+  resource: RequestInfo,
+  options: { timeout?: number } & RequestInit = {}
+) => {
+  const { timeout = 4000 } = options
+
+  const controller = new AbortController()
+  const id = setTimeout(() => controller.abort(), timeout)
+  const response = await fetch(resource, {
+    ...options,
+    signal: controller.signal
+  })
+  clearTimeout(id)
+  return response
+}
 
 /**
  * extensions based on OpenSea metadata standards
@@ -31,8 +47,9 @@ const NON_IMAGE_EXTENSIONS = [
 
 const NULL_ADDRESS = '0x0000000000000000000000000000000000000000'
 
-const isAssetImage = (asset: OpenSeaAssetExtended) => {
+const isAssetImage = (asset: OpenSeaNftExtended) => {
   return [
+    asset.image,
     asset.image_url,
     asset.image_original_url,
     asset.image_preview_url,
@@ -43,13 +60,14 @@ const isAssetImage = (asset: OpenSeaAssetExtended) => {
 }
 
 const areUrlExtensionsSupportedForType = (
-  asset: OpenSeaAssetExtended,
+  asset: OpenSeaNftExtended,
   extensions: string[]
 ) => {
   const {
     animation_url,
     animation_original_url,
     image_url,
+    image,
     image_original_url,
     image_preview_url,
     image_thumbnail_url
@@ -58,25 +76,27 @@ const areUrlExtensionsSupportedForType = (
     animation_url || '',
     animation_original_url || '',
     image_url,
+    image,
     image_original_url,
     image_preview_url,
     image_thumbnail_url
   ].some((url) => url && extensions.some((ext) => url.endsWith(ext)))
 }
 
-const isAssetVideo = (asset: OpenSeaAssetExtended) => {
+const isAssetVideo = (asset: OpenSeaNftExtended) => {
   return areUrlExtensionsSupportedForType(asset, SUPPORTED_VIDEO_EXTENSIONS)
 }
 
-const isAssetThreeDAndIncludesImage = (asset: OpenSeaAssetExtended) => {
+const isAssetThreeDAndIncludesImage = (asset: OpenSeaNftExtended) => {
   return (
     areUrlExtensionsSupportedForType(asset, SUPPORTED_3D_EXTENSIONS) &&
     isAssetImage(asset)
   )
 }
 
-const isAssetGif = (asset: OpenSeaAssetExtended) => {
+const isAssetGif = (asset: OpenSeaNftExtended) => {
   return !!(
+    asset.image?.endsWith('.gif') ||
     asset.image_url?.endsWith('.gif') ||
     asset.image_original_url?.endsWith('.gif') ||
     asset.image_preview_url?.endsWith('.gif') ||
@@ -84,13 +104,52 @@ const isAssetGif = (asset: OpenSeaAssetExtended) => {
   )
 }
 
-export const isAssetValid = (asset: OpenSeaAssetExtended) => {
+export const isAssetValid = (asset: OpenSeaNftExtended) => {
   return (
     isAssetGif(asset) ||
     isAssetThreeDAndIncludesImage(asset) ||
     isAssetVideo(asset) ||
     isAssetImage(asset)
   )
+}
+
+const ipfsProtocolPrefix = 'ipfs://'
+const getIpfsProtocolUrl = (asset: OpenSeaNftExtended) => {
+  return [
+    asset.animation_url,
+    asset.animation_original_url,
+    asset.image,
+    asset.image_url,
+    asset.image_original_url,
+    asset.image_preview_url,
+    asset.image_thumbnail_url
+  ].find((url) => url?.startsWith(ipfsProtocolPrefix))
+}
+const getIpfsMetadataUrl = (ipfsProtocolUrl: string) => {
+  return `https://ipfs.io/ipfs/${ipfsProtocolUrl.substring(
+    ipfsProtocolPrefix.length
+  )}`
+}
+const arweavePrefix = 'ar://'
+const getArweaveProtocolUrl = (asset: OpenSeaNftExtended) => {
+  return [
+    asset.animation_url,
+    asset.animation_original_url,
+    asset.image,
+    asset.image_url,
+    asset.image_original_url,
+    asset.image_preview_url,
+    asset.image_thumbnail_url
+  ].find((url) => url?.startsWith(arweavePrefix))
+}
+const getArweaveMetadataUrl = (arweaveProtocolUrl: string) => {
+  return `https://arweave.net/${arweaveProtocolUrl.substring(
+    arweavePrefix.length
+  )}`
+}
+
+export const getAssetIdentifier = (asset: OpenSeaNftExtended) => {
+  return `${asset.identifier}:::${asset.contract ?? ''}`
 }
 
 /**
@@ -118,31 +177,46 @@ export const isAssetValid = (asset: OpenSeaAssetExtended) => {
  * @param asset
  */
 export const assetToCollectible = async (
-  asset: OpenSeaAssetExtended
+  asset: OpenSeaNftExtended
 ): Promise<Collectible> => {
   let mediaType: CollectibleMediaType
-  let frameUrl = null
-  let imageUrl = null
-  let videoUrl = null
-  let threeDUrl = null
-  let gifUrl = null
+  let frameUrl: Nullable<string> = null
+  let imageUrl: Nullable<string> = null
+  let videoUrl: Nullable<string> = null
+  let threeDUrl: Nullable<string> = null
+  let gifUrl: Nullable<string> = null
 
-  const { animation_url, animation_original_url } = asset
+  let hasAudio = false
+  let animationUrlOverride: Nullable<string> = null
+
+  const {
+    animation_url,
+    animation_original_url,
+    image,
+    image_url,
+    image_original_url,
+    image_preview_url,
+    image_thumbnail_url
+  } = asset
   const imageUrls = [
-    asset.image_url,
-    asset.image_original_url,
-    asset.image_preview_url,
-    asset.image_thumbnail_url
+    image,
+    image_url,
+    image_original_url,
+    image_preview_url,
+    image_thumbnail_url
   ]
+
+  const ipfsProtocolUrl = getIpfsProtocolUrl(asset)
+  const arweaveProtocolUrl = getArweaveProtocolUrl(asset)
 
   try {
     if (isAssetGif(asset)) {
-      mediaType = 'GIF'
+      mediaType = CollectibleMediaType.GIF
       // frame url for the gif is computed later in the collectibles page
       frameUrl = null
       gifUrl = imageUrls.find((url) => url?.endsWith('.gif'))!
     } else if (isAssetThreeDAndIncludesImage(asset)) {
-      mediaType = 'THREE_D'
+      mediaType = CollectibleMediaType.THREE_D
       threeDUrl = [animation_url, animation_original_url, ...imageUrls].find(
         (url) => url && SUPPORTED_3D_EXTENSIONS.some((ext) => url.endsWith(ext))
       )!
@@ -153,7 +227,7 @@ export const assetToCollectible = async (
       // just because the don't end with the NON_IMAGE_EXTENSIONS above does not mean they are images
       // they may be gifs
       // example: https://lh3.googleusercontent.com/rOopRU-wH9mqMurfvJ2INLIGBKTtF8BN_XC7KZxTh8PPHt5STSNJ-i8EQit8ZTwE3Mi8LK4on_4YazdC3Cl-HdaxbnKJ23P8kocvJHQ
-      const res = await fetch(frameUrl, { method: 'HEAD' })
+      const res = await fetchWithTimeout(frameUrl, { method: 'HEAD' })
       const hasGifFrame = res.headers.get('Content-Type')?.includes('gif')
       if (hasGifFrame) {
         gifUrl = frameUrl
@@ -161,7 +235,7 @@ export const assetToCollectible = async (
         frameUrl = null
       }
     } else if (isAssetVideo(asset)) {
-      mediaType = 'VIDEO'
+      mediaType = CollectibleMediaType.VIDEO
       frameUrl =
         imageUrls.find(
           (url) =>
@@ -173,7 +247,7 @@ export const assetToCollectible = async (
        * if it is, unset frame url so that component will use a video url frame instead
        */
       if (frameUrl) {
-        const res = await fetch(frameUrl, { method: 'HEAD' })
+        const res = await fetchWithTimeout(frameUrl, { method: 'HEAD' })
         const isVideo = res.headers.get('Content-Type')?.includes('video')
         const isGif = res.headers.get('Content-Type')?.includes('gif')
         if (isVideo || isGif) {
@@ -185,19 +259,89 @@ export const assetToCollectible = async (
         (url) =>
           url && SUPPORTED_VIDEO_EXTENSIONS.some((ext) => url.endsWith(ext))
       )!
+    } else if (ipfsProtocolUrl) {
+      try {
+        const metadataUrl = getIpfsMetadataUrl(ipfsProtocolUrl)
+        const res = await fetchWithTimeout(metadataUrl, { method: 'HEAD' })
+        const isGif = res.headers.get('Content-Type')?.includes('gif')
+        const isVideo = res.headers.get('Content-Type')?.includes('video')
+        const isAudio = res.headers.get('Content-Type')?.includes('audio')
+        if (isGif) {
+          mediaType = CollectibleMediaType.GIF
+          frameUrl = null
+          gifUrl = metadataUrl
+        } else if (isVideo) {
+          mediaType = CollectibleMediaType.VIDEO
+          frameUrl = null
+          videoUrl = metadataUrl
+        } else {
+          mediaType = CollectibleMediaType.IMAGE
+          imageUrl = imageUrls.find((url) => !!url)!
+          if (imageUrl.startsWith(ipfsProtocolPrefix)) {
+            imageUrl = getIpfsMetadataUrl(imageUrl)
+          }
+          frameUrl = imageUrl
+          if (isAudio) {
+            hasAudio = true
+            animationUrlOverride = metadataUrl
+          }
+        }
+      } catch (e) {
+        console.error(
+          `Could not fetch url metadata at ${ipfsProtocolUrl} for asset contract address ${asset.contract} and asset token id ${asset.token_id}`
+        )
+        mediaType = CollectibleMediaType.IMAGE
+        frameUrl = imageUrls.find((url) => !!url)!
+        imageUrl = frameUrl
+      }
+    } else if (arweaveProtocolUrl) {
+      try {
+        const metadataUrl = getArweaveMetadataUrl(arweaveProtocolUrl)
+        const res = await fetchWithTimeout(metadataUrl, { method: 'HEAD' })
+        const isGif = res.headers.get('Content-Type')?.includes('gif')
+        const isVideo = res.headers.get('Content-Type')?.includes('video')
+        const isAudio = res.headers.get('Content-Type')?.includes('audio')
+        if (isGif) {
+          mediaType = CollectibleMediaType.GIF
+          frameUrl = null
+          gifUrl = metadataUrl
+        } else if (isVideo) {
+          mediaType = CollectibleMediaType.VIDEO
+          frameUrl = null
+          videoUrl = metadataUrl
+        } else {
+          mediaType = CollectibleMediaType.IMAGE
+          imageUrl = imageUrls.find((url) => !!url)!
+          if (imageUrl.startsWith(arweavePrefix)) {
+            imageUrl = getArweaveMetadataUrl(imageUrl)
+          }
+          frameUrl = imageUrl
+          if (isAudio) {
+            hasAudio = true
+            animationUrlOverride = metadataUrl
+          }
+        }
+      } catch (e) {
+        console.error(
+          `Could not fetch url metadata at ${arweaveProtocolUrl} for asset contract address ${asset.contract} and asset token id ${asset.token_id}`
+        )
+        mediaType = CollectibleMediaType.IMAGE
+        frameUrl = imageUrls.find((url) => !!url)!
+        imageUrl = frameUrl
+      }
     } else {
-      mediaType = 'IMAGE'
+      mediaType = CollectibleMediaType.IMAGE
       frameUrl = imageUrls.find((url) => !!url)!
-      const res = await fetch(frameUrl, { method: 'HEAD' })
+      const res = await fetchWithTimeout(frameUrl, { method: 'HEAD' })
       const isGif = res.headers.get('Content-Type')?.includes('gif')
       const isVideo = res.headers.get('Content-Type')?.includes('video')
       if (isGif) {
-        mediaType = 'GIF'
+        mediaType = CollectibleMediaType.GIF
         gifUrl = frameUrl
         // frame url for the gif is computed later in the collectibles page
         frameUrl = null
       } else if (isVideo) {
-        mediaType = 'VIDEO'
+        mediaType = CollectibleMediaType.VIDEO
         frameUrl = null
         videoUrl = imageUrls.find((url) => !!url)!
       } else {
@@ -206,14 +350,14 @@ export const assetToCollectible = async (
     }
   } catch (e) {
     console.error('Error processing collectible', e)
-    mediaType = 'IMAGE'
+    mediaType = CollectibleMediaType.IMAGE
     frameUrl = imageUrls.find((url) => !!url)!
     imageUrl = frameUrl
   }
 
   return {
-    id: `${asset.token_id}:::${asset.asset_contract?.address ?? ''}`,
-    tokenId: asset.token_id,
+    id: getAssetIdentifier(asset),
+    tokenId: asset.identifier,
     name: (asset.name || asset?.asset_contract?.name) ?? '',
     description: asset.description,
     mediaType,
@@ -222,28 +366,20 @@ export const assetToCollectible = async (
     videoUrl,
     threeDUrl,
     gifUrl,
+    animationUrl: animationUrlOverride ?? animation_url ?? null,
+    hasAudio,
     isOwned: true,
     dateCreated: null,
     dateLastTransferred: null,
-    externalLink: asset.external_link,
-    permaLink: asset.permalink,
-    assetContractAddress: asset.asset_contract?.address ?? null,
+    externalLink: asset.external_url ?? null,
+    permaLink: asset.opensea_url,
+    assetContractAddress: asset.contract,
+    standard: (asset.token_standard?.toUpperCase() as EthTokenStandard) ?? null,
+    collectionSlug: asset.collection ?? null,
+    collectionName: asset.collectionMetadata?.name ?? null,
+    collectionImageUrl: asset.collectionMetadata?.image_url ?? null,
     chain: 'eth',
     wallet: asset.wallet
-  }
-}
-
-export const creationEventToCollectible = async (
-  event: OpenSeaEventExtended
-): Promise<Collectible> => {
-  const { asset, created_date } = event
-
-  const collectible = await assetToCollectible(asset)
-
-  return {
-    ...collectible,
-    dateCreated: created_date,
-    isOwned: false
   }
 }
 
@@ -251,17 +387,17 @@ export const transferEventToCollectible = async (
   event: OpenSeaEventExtended,
   isOwned = true
 ): Promise<Collectible> => {
-  const { asset, created_date } = event
+  const { nft, event_timestamp } = event
 
-  const collectible = await assetToCollectible(asset)
+  const collectible = await assetToCollectible(nft)
 
   return {
     ...collectible,
     isOwned,
-    dateLastTransferred: created_date
+    dateLastTransferred: dayjs(event_timestamp * 1000).toString()
   }
 }
 
-export const isFromNullAddress = (event: OpenSeaEvent) => {
-  return event.from_account.address === NULL_ADDRESS
+export const isNotFromNullAddress = (event: OpenSeaEvent) => {
+  return event.from_address !== NULL_ADDRESS
 }
