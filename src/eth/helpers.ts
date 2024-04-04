@@ -3,9 +3,11 @@ import dayjs from 'dayjs'
 import { Nullable } from 'utils/typeUtils'
 import { Collectible, CollectibleMediaType } from 'utils/types'
 
+import placeholderCoverArt from '../assets/img/imageCollectiblePlaceholder2x.webp'
+
 import { EthTokenStandard, OpenSeaEvent, OpenSeaEventExtended, OpenSeaNftExtended } from './types'
 
-const fetchWithTimeout = async (
+export const fetchWithTimeout = async (
   resource: RequestInfo,
   options: { timeout?: number } & RequestInit = {}
 ) => {
@@ -19,6 +21,12 @@ const fetchWithTimeout = async (
   })
   clearTimeout(id)
   return response
+}
+
+const isWebpAnimated = (arrayBuffer: ArrayBuffer) => {
+  const decoder = new TextDecoder('utf-8')
+  const text = decoder.decode(arrayBuffer)
+  return text.indexOf('ANMF') !== -1
 }
 
 /**
@@ -116,30 +124,31 @@ export const isAssetValid = (asset: OpenSeaNftExtended) => {
 const ipfsProtocolPrefix = 'ipfs://'
 const getIpfsProtocolUrl = (asset: OpenSeaNftExtended) => {
   return [
-    asset.animation_url,
-    asset.animation_original_url,
     asset.image,
     asset.image_url,
     asset.image_original_url,
     asset.image_preview_url,
-    asset.image_thumbnail_url
+    asset.image_thumbnail_url,
+    asset.animation_url,
+    asset.animation_original_url
   ].find((url) => url?.startsWith(ipfsProtocolPrefix))
 }
 const getIpfsMetadataUrl = (ipfsProtocolUrl: string) => {
-  return `https://ipfs.io/ipfs/${ipfsProtocolUrl.substring(
-    ipfsProtocolPrefix.length
-  )}`
+  const url = ipfsProtocolUrl
+    .substring(ipfsProtocolPrefix.length)
+    .replace('ipfs/', '')
+  return `https://ipfs.io/ipfs/${url}`
 }
 const arweavePrefix = 'ar://'
 const getArweaveProtocolUrl = (asset: OpenSeaNftExtended) => {
   return [
-    asset.animation_url,
-    asset.animation_original_url,
     asset.image,
     asset.image_url,
     asset.image_original_url,
     asset.image_preview_url,
-    asset.image_thumbnail_url
+    asset.image_thumbnail_url,
+    asset.animation_url,
+    asset.animation_original_url
   ].find((url) => url?.startsWith(arweavePrefix))
 }
 const getArweaveMetadataUrl = (arweaveProtocolUrl: string) => {
@@ -215,6 +224,9 @@ export const assetToCollectible = async (
       // frame url for the gif is computed later in the collectibles page
       frameUrl = null
       gifUrl = imageUrls.find((url) => url?.endsWith('.gif'))!
+      if (ipfsProtocolUrl) {
+        gifUrl = getIpfsMetadataUrl(gifUrl)
+      }
     } else if (isAssetThreeDAndIncludesImage(asset)) {
       mediaType = CollectibleMediaType.THREE_D
       threeDUrl = [animation_url, animation_original_url, ...imageUrls].find(
@@ -266,7 +278,22 @@ export const assetToCollectible = async (
         const isGif = res.headers.get('Content-Type')?.includes('gif')
         const isVideo = res.headers.get('Content-Type')?.includes('video')
         const isAudio = res.headers.get('Content-Type')?.includes('audio')
-        if (isGif) {
+        const isWebp = res.headers.get('Content-Type')?.includes('webp')
+        let isAnimatedWebp = false
+        if (isWebp) {
+          const ab = await res.arrayBuffer()
+          isAnimatedWebp = isWebpAnimated(ab)
+        }
+        if (res.status >= 300) {
+          mediaType = CollectibleMediaType.IMAGE
+          imageUrl = placeholderCoverArt as string
+          frameUrl = placeholderCoverArt as string
+        } else if (isAnimatedWebp) {
+          mediaType = CollectibleMediaType.ANIMATED_WEBP
+          gifUrl = frameUrl
+          // frame url for the animated webp is computed later in the collectibles page
+          frameUrl = null
+        } else if (isGif) {
           mediaType = CollectibleMediaType.GIF
           frameUrl = null
           gifUrl = metadataUrl
@@ -292,6 +319,9 @@ export const assetToCollectible = async (
         )
         mediaType = CollectibleMediaType.IMAGE
         frameUrl = imageUrls.find((url) => !!url)!
+        if (frameUrl.startsWith(ipfsProtocolPrefix)) {
+          frameUrl = getIpfsMetadataUrl(frameUrl)
+        }
         imageUrl = frameUrl
       }
     } else if (arweaveProtocolUrl) {
@@ -301,7 +331,22 @@ export const assetToCollectible = async (
         const isGif = res.headers.get('Content-Type')?.includes('gif')
         const isVideo = res.headers.get('Content-Type')?.includes('video')
         const isAudio = res.headers.get('Content-Type')?.includes('audio')
-        if (isGif) {
+        const isWebp = res.headers.get('Content-Type')?.includes('webp')
+        let isAnimatedWebp = false
+        if (isWebp) {
+          const ab = await res.arrayBuffer()
+          isAnimatedWebp = isWebpAnimated(ab)
+        }
+        if (res.status >= 300) {
+          mediaType = CollectibleMediaType.IMAGE
+          imageUrl = placeholderCoverArt as string
+          frameUrl = placeholderCoverArt as string
+        } else if (isAnimatedWebp) {
+          mediaType = CollectibleMediaType.ANIMATED_WEBP
+          gifUrl = frameUrl
+          // frame url for the animated webp is computed later in the collectibles page
+          frameUrl = null
+        } else if (isGif) {
           mediaType = CollectibleMediaType.GIF
           frameUrl = null
           gifUrl = metadataUrl
@@ -330,12 +375,28 @@ export const assetToCollectible = async (
         imageUrl = frameUrl
       }
     } else {
-      mediaType = CollectibleMediaType.IMAGE
       frameUrl = imageUrls.find((url) => !!url)!
-      const res = await fetchWithTimeout(frameUrl, { method: 'HEAD' })
+      const res = await fetchWithTimeout(frameUrl, {
+        headers: { Range: 'bytes=0-100' }
+      })
       const isGif = res.headers.get('Content-Type')?.includes('gif')
       const isVideo = res.headers.get('Content-Type')?.includes('video')
-      if (isGif) {
+      const isWebp = res.headers.get('Content-Type')?.includes('webp')
+      let isAnimatedWebp = false
+      if (isWebp) {
+        const ab = await res.arrayBuffer()
+        isAnimatedWebp = isWebpAnimated(ab)
+      }
+      if (res.status >= 300) {
+        mediaType = CollectibleMediaType.IMAGE
+        imageUrl = placeholderCoverArt as string
+        frameUrl = placeholderCoverArt as string
+      } else if (isAnimatedWebp) {
+        mediaType = CollectibleMediaType.ANIMATED_WEBP
+        gifUrl = frameUrl
+        // frame url for the animated webp is computed later in the collectibles page
+        frameUrl = null
+      } else if (isGif) {
         mediaType = CollectibleMediaType.GIF
         gifUrl = frameUrl
         // frame url for the gif is computed later in the collectibles page
@@ -345,17 +406,24 @@ export const assetToCollectible = async (
         frameUrl = null
         videoUrl = imageUrls.find((url) => !!url)!
       } else {
+        mediaType = CollectibleMediaType.IMAGE
         imageUrl = imageUrls.find((url) => !!url)!
+        frameUrl = imageUrls.find((url) => !!url)!
       }
     }
   } catch (e) {
     console.error('Error processing collectible', e)
     mediaType = CollectibleMediaType.IMAGE
-    frameUrl = imageUrls.find((url) => !!url)!
-    imageUrl = frameUrl
+    imageUrl = placeholderCoverArt as string
+    frameUrl = placeholderCoverArt as string
   }
 
-  return {
+  const collectionSlug =
+    typeof asset.collection === 'object'
+      ? (asset.collection as unknown as any).name ?? null
+      : asset.collection
+
+  const collectible: Collectible = {
     id: getAssetIdentifier(asset),
     tokenId: asset.identifier,
     name: (asset.name || asset?.asset_contract?.name) ?? '',
@@ -375,12 +443,13 @@ export const assetToCollectible = async (
     permaLink: asset.opensea_url,
     assetContractAddress: asset.contract,
     standard: (asset.token_standard?.toUpperCase() as EthTokenStandard) ?? null,
-    collectionSlug: asset.collection ?? null,
+    collectionSlug: collectionSlug ?? null,
     collectionName: asset.collectionMetadata?.name ?? null,
     collectionImageUrl: asset.collectionMetadata?.image_url ?? null,
     chain: 'eth',
     wallet: asset.wallet
   }
+  return collectible
 }
 
 export const transferEventToCollectible = async (

@@ -34,8 +34,12 @@ export class FetchNFTClient {
     })
   }
 
-  public getEthereumCollectionMetadatas = async (addresses: []): Promise<{ [address: string]: OpenSeaCollection }> => {
+  public getEthereumCollectionMetadatas = async (addresses: string[]): Promise<{ [address: string]: OpenSeaCollection }> => {
     return this.ethCollectiblesProvider.getCollectionMetadatas(addresses)
+  }
+
+  public getEthereumCollectionMetadatasForCollectibles = async (collectibles: Collectible[]): Promise<Collectible[]> => {
+    return this.ethCollectiblesProvider.getCollectionMetadatasForCollectibles(collectibles)
   }
 
   public getEthereumCollectibles = async (
