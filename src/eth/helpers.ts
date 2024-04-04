@@ -3,9 +3,8 @@ import dayjs from 'dayjs'
 import { Nullable } from 'utils/typeUtils'
 import { Collectible, CollectibleMediaType } from 'utils/types'
 
-import placeholderCoverArt from '../assets/img/imageCollectiblePlaceholder2x.webp'
-
 import { EthTokenStandard, OpenSeaEvent, OpenSeaEventExtended, OpenSeaNftExtended } from './types'
+import { placeholderImage } from 'utils/placeholderImage'
 
 export const fetchWithTimeout = async (
   resource: RequestInfo,
@@ -286,8 +285,8 @@ export const assetToCollectible = async (
         }
         if (res.status >= 300) {
           mediaType = CollectibleMediaType.IMAGE
-          imageUrl = placeholderCoverArt as string
-          frameUrl = placeholderCoverArt as string
+          imageUrl = placeholderImage
+          frameUrl = placeholderImage
         } else if (isAnimatedWebp) {
           mediaType = CollectibleMediaType.ANIMATED_WEBP
           gifUrl = frameUrl
@@ -339,8 +338,8 @@ export const assetToCollectible = async (
         }
         if (res.status >= 300) {
           mediaType = CollectibleMediaType.IMAGE
-          imageUrl = placeholderCoverArt as string
-          frameUrl = placeholderCoverArt as string
+          imageUrl = placeholderImage
+          frameUrl = placeholderImage
         } else if (isAnimatedWebp) {
           mediaType = CollectibleMediaType.ANIMATED_WEBP
           gifUrl = frameUrl
@@ -389,8 +388,8 @@ export const assetToCollectible = async (
       }
       if (res.status >= 300) {
         mediaType = CollectibleMediaType.IMAGE
-        imageUrl = placeholderCoverArt as string
-        frameUrl = placeholderCoverArt as string
+        imageUrl = placeholderImage
+        frameUrl = placeholderImage
       } else if (isAnimatedWebp) {
         mediaType = CollectibleMediaType.ANIMATED_WEBP
         gifUrl = frameUrl
@@ -414,8 +413,8 @@ export const assetToCollectible = async (
   } catch (e) {
     console.error('Error processing collectible', e)
     mediaType = CollectibleMediaType.IMAGE
-    imageUrl = placeholderCoverArt as string
-    frameUrl = placeholderCoverArt as string
+    imageUrl = placeholderImage
+    frameUrl = placeholderImage
   }
 
   const collectionSlug =
