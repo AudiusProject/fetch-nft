@@ -4,7 +4,7 @@ const OPENSEA_API_URL = 'https://api.opensea.io'
 const OPENSEA_NUM_ASSETS_LIMIT = 200
 const OPENSEA_NUM_EVENTS_LIMIT = 50
 
-export type OpenSeaClientCtorProps = {
+export type OpenSeaConfig = {
   apiEndpoint?: string
   apiKey?: string
   assetLimit?: number
@@ -19,7 +19,7 @@ export class OpenSeaClient {
 
   private requestOptions
 
-  constructor(props?: OpenSeaClientCtorProps) {
+  constructor(props?: OpenSeaConfig) {
     this.apiUrl = props?.apiEndpoint ?? this.apiUrl
     this.apiKey = props?.apiKey ?? this.apiKey
     this.assetLimit = props?.assetLimit ?? this.assetLimit

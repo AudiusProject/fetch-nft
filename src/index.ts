@@ -1,9 +1,9 @@
 import { Metadata } from '@metaplex-foundation/mpl-token-metadata'
 
-import { OpenSeaClient, OpenSeaClientCtorProps } from 'eth/opensea'
+import { OpenSeaClient, OpenSeaConfig } from 'eth/opensea'
 import { EthereumCollectiblesProvider } from 'eth/provider'
 import { OpenSeaCollection } from 'eth/types'
-import { HeliusClient, HeliusClientCtorProps } from 'sol/helius'
+import { HeliusClient, HeliusConfig } from 'sol/helius'
 import { SolanaCollectiblesProvider } from 'sol/provider'
 import { Nullable } from 'utils/typeUtils'
 import { Collectible, CollectibleState } from 'utils/types'
@@ -11,8 +11,8 @@ import { Collectible, CollectibleState } from 'utils/types'
 import 'cross-fetch/polyfill'
 
 type FetchNFTClientProps = {
-  openSeaConfig?: OpenSeaClientCtorProps
-  heliusConfig? : HeliusClientCtorProps
+  openSeaConfig?: OpenSeaConfig
+  heliusConfig? : HeliusConfig
   solanaConfig?: {
     rpcEndpoint?: string
     metadataProgramId?: string

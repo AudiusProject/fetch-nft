@@ -49,22 +49,22 @@ By default, fetch-nft uses the public Opensea API and the Solana mainnet RPC end
 FetchNFTClient is the primary interface for using the library. When initializing the client, you may optionally pass in configs for the OpenSea and Helius clients used internally.
 
 ```ts
-type OpenSeaClientProps = {
+type OpenSeaConfig = {
   apiEndpoint?: string;
   apiKey?: string;
   assetLimit?: number;
   eventLimit?: number;
 };
 
-type HeliusClientCtorProps = {
+type HeliusConfig = {
   apiEndpoint?: string;
   apiKey?: string;
   limit?: number;
 };
 
 type FetchNFTClientProps = {
-  openSeaConfig?: OpenSeaClientCtorProps;
-  heliusConfig?: HeliusClientCtorProps;
+  openSeaConfig?: OpenSeaConfig;
+  heliusConfig?: HeliusConfig;
   solanaConfig?: {
     rpcEndpoint?: string;
     metadataProgramId?: string;

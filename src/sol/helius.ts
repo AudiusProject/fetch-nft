@@ -2,7 +2,7 @@ import { HeliusNFT } from './types'
 
 const HELIUS_NUM_ASSETS_PER_PAGE_LIMIT = 1000
 
-export type HeliusClientCtorProps = {
+export type HeliusConfig = {
   apiEndpoint?: string
   apiKey?: string
   limit?: number
@@ -13,7 +13,7 @@ export class HeliusClient {
   private readonly apiKey: string = ''
   private readonly limit: number = HELIUS_NUM_ASSETS_PER_PAGE_LIMIT
 
-  constructor(props?: HeliusClientCtorProps) {
+  constructor(props?: HeliusConfig) {
     this.apiUrl = props?.apiEndpoint ?? this.apiUrl
     this.apiKey = props?.apiKey ?? this.apiKey
     this.limit = props?.limit ?? this.limit
