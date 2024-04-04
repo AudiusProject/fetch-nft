@@ -50,8 +50,8 @@ export class FetchNFTClient {
       : {}
   }
 
-  public getSolanaCollectionMetadata = async (mintAddress: string): Promise<Nullable<{ metadata: Metadata, imageUrl: string }>> => {
-    return this.solCollectiblesProvider.getCollectionMetadata(mintAddress)
+  public getSolanaMetadataFromChain = async (mintAddress: string): Promise<Nullable<{ metadata: Metadata, imageUrl: string }>> => {
+    return this.solCollectiblesProvider.getMetadataFromChain(mintAddress)
   }
 
   public getSolanaCollectibles = async (

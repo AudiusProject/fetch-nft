@@ -141,7 +141,7 @@ export class SolanaCollectiblesProvider {
     return collectiblesMap
   }
 
-  async getCollectionMetadata(mintAddress: string) {
+  async getMetadataFromChain(mintAddress: string) {
     if (this.connection === null) return null
 
     try {
