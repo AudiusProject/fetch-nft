@@ -73,7 +73,12 @@ export class OpenSeaClient {
         next = json.next
         events = [...events, ...json.asset_events]
       }
-      return events.map((event) => ({ ...event, wallet }))
+      if (events) {
+        return events.map((event) => ({ ...event, wallet }))
+      } else {
+        console.warn(`OpenSeaClient | getNftTransferEventsForWallet | could not get transfer events for wallet ${wallet}: ${{ events }}`)
+        return []
+      }
     } catch (e) {
       console.error(`OpenSeaClient | getNftTransferEventsForWallet | error for wallet ${wallet}: ${e}`)
       throw e
@@ -105,7 +110,12 @@ export class OpenSeaClient {
         next = json.next
         nfts = [...nfts, ...json.nfts]
       }
-      return nfts.map((nft) => ({ ...nft, wallet }))
+      if (nfts) {
+        return nfts.map((nft) => ({ ...nft, wallet }))
+      } else {
+        console.warn(`OpenSeaClient | getNftsForWallet | could not get nfts for wallet ${wallet}: ${{ nfts }}`)
+        return []
+      }
     } catch (e) {
       console.error(`OpenSeaClient | getNftsForWallet | error for wallet ${wallet}: ${e}`)
       throw e
