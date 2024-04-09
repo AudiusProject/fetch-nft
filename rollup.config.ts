@@ -31,7 +31,9 @@ const config = [
     ],
     plugins: [
       commonjs({ extensions }),
-      external(),
+      external({
+        includeDependencies: true
+      }),
       json(),
       resolve({ extensions, preferBuiltins: true }),
       typescript({ tsconfig: './tsconfig.json' })
