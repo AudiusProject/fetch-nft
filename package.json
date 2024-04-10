@@ -1,6 +1,6 @@
 {
   "name": "@audius/fetch-nft",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "author": "Audius",
   "description": "A utility to fetch Ethereum & Solana NFTs",
   "files": [
