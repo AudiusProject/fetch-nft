@@ -5,8 +5,8 @@ import typescript from '@rollup/plugin-typescript'
 import dts from 'rollup-plugin-dts'
 import external from 'rollup-plugin-peer-deps-external'
 
-import pkg from './package.json'
-import tsconfig from './tsconfig.json'
+import pkg from './package.json' assert { type: 'json' }
+import tsconfig from './tsconfig.json' assert { type: 'json' }
 
 const extensions = ['.js', '.ts']
 
