@@ -40,8 +40,8 @@
     "typescript": "5.0.4"
   },
   "peerDependencies": {
-    "@solana/spl-token": "0.3.8",
-    "@solana/web3.js": "1.93.4"
+    "@solana/spl-token": "^0.3.8",
+    "@solana/web3.js": "^1.93.4"
   },
   "dependencies": {
     "@metaplex-foundation/mpl-token-metadata": "3.2.1",
