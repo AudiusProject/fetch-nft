@@ -1,6 +1,6 @@
 {
   "name": "@audius/fetch-nft",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "author": "Audius",
   "description": "A utility to fetch Ethereum & Solana NFTs",
   "files": [
@@ -39,11 +39,13 @@
     "tslib": "2.3.1",
     "typescript": "5.0.4"
   },
+  "peerDependencies": {
+    "@solana/spl-token": "^0.3.8",
+    "@solana/web3.js": "^1.95.8"
+  },
   "dependencies": {
     "@metaplex-foundation/mpl-token-metadata": "3.2.1",
     "@metaplex-foundation/umi": "0.9.1",
-    "@solana/spl-token": "0.3.8",
-    "@solana/web3.js": "1.93.4",
     "cross-fetch": "3.1.4",
     "dayjs": "1.11.10"
   }
